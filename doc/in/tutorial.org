@@ -1,0 +1,502 @@
+#+TITLE: Introduction to Della
+#+AUTHOR: Jonathan Olmsted
+#+EMAIL: jolmsted@princeton.edu
+#+DESCRIPTION:
+#+STYLE: <style>html {font-family: sans-serif;}</style>
+#+STYLE: <style>code {font-family: monospace; border: 1pt solid #AEBDCC; background-color: #F3F5F7; padding: 1pt; font-size: 90%;}</style>
+#+STYLE: <style>pre {font-family: monospace;}</style>
+#+OPTIONS: H:4 num:t toc:nil @:t ::t |:t ^:t f:t TeX:t
+
+#+LaTeX_CLASS: qaps-tn
+#+LaTeX_HEADER: \subtitle{Basic HPC at Princeton}
+#+LaTeX_HEADER: \authoremail{jolmsted@princeton.edu}
+#+LaTeX: \tableofcontents \pagebreak
+
+#+MACRO: softwareTeX #+LaTeX: \software{$1}
+#+MACRO: softwareHTML #+HTML: <software>$1</software>
+
+#+MACRO: machineTeX #+LaTeX: \machine{$1}
+#+MACRO: machineHTML #+HTML: <machine>$1</machine>
+
+#+MACRO: urlTeX #+LaTeX: \url{$1}
+#+MACRO: urlHTML #+HTML: <url>$1</url>
+
+#+MACRO: software {{{softwareTeX($1)}}} \n {{{softwareHTML($1)}}}
+#+MACRO: machine {{{machineTeX($1)}}} \n {{{machineHTML($1)}}}
+#+MACRO: url {{{urlTeX($1)}}} \n {{{urlHTML($1)}}}
+
+
+* Introduction
+*[[http://www.princeton.edu/researchcomputing/computational-hardware/machine-2/][
+{{{machine(Della)}}}
+]]*
+is one of several clusters managed by the
+[[http://www.princeton.edu/researchcomputing/index.xml][Research Computing]]
+collaboration at Princeton University. Currently,
+#
+{{{machine(Della)}}}
+#
+is the primary system to which computation-heavy projects originating in the
+Politics Department have access.[fn:1] The purpose of this tutorial is to walk
+through the steps required to log on to
+#
+{{{machine(Della)}}}
+#
+from your local computer and submit an example job. By the end of this, you
+should be able to submit a syntactically correct job on
+#
+{{{machine(Della)}}}
+#
+ and, more importantly, understand the
+semantics of what you've done.
+
+** Prerequisites
+   This tutorial assumes that you have an account on
+   #
+   {{{machine(Della.)}}}
+   #
+   If you do not, you
+   can create one at
+   #
+   {{{url(http://www.princeton.edu/researchcomputing/access/)}}}
+   #
+   . Also,
+   it is assumed that you have the means to use the
+   #
+   {{{software(ssh)}}}
+   #
+   protocol
+   to communicate with the server. If you are using the Mac OS or a Linux
+   variant, you likely can use the =ssh= command at a shell directly without
+   doing any setup. If, on the other hand, you are using a Windows OS, you'll
+   need to install an
+   #
+   {{{software(ssh)}}}
+   #
+   utility like [[http://www.openssh.com/windows.html][PuTTY]].[fn:2] It is also
+   assumed that you have some limited knowledge of interacting with machines
+   running Unix-like operating systems via the command line.
+
+** Typographical Conventions
+   =Computer input, output, web locations, and file locations use a fixed-width
+   font.=
+   #
+   {{{software(Software packages use a sans-serif font.)}}}
+   #
+   {{{machine(System names are in small-caps.)}}}
+   #
+
+
+
+#+LaTeX: \subsection{License}
+#+LaTeX: \license
+
+
+* Connecting to Della
+  Once you have an account on
+  #
+  {{{machine(Della)}}}
+  #
+  and an
+  #
+  {{{software(ssh)}}}
+  #
+  client installed, connecting
+  with
+  #
+  {{{machine(Della)}}}
+  #
+  is straightforward. On a Mac or Linux OS, simply open a terminal
+  and run
+  #
+  #+LaTeX: \lstset{numbers=none}
+  #+BEGIN_SRC sh
+ssh user@della.princeton.edu
+  #+END_SRC
+  #
+  where =user= is replaced with your actual username. You'll then be prompted
+  for your password. Enter it (note: you'll not receive visual feedback that
+  you've entered a character, so type carefully).
+
+  If you are on a Windows OS, start the newly installed
+  #
+  {{{software(ssh)}}}
+  #
+  utility. Follow the prompts to fill in the username and server fields. Like
+  above, the server address is =della.princeton.edu=.
+
+  In both cases, you'll be greeted with a prompt similar to the following after
+  successfully logging in:
+  #
+  #+BEGIN_SRC fundamental
+[user@della3 ~]$
+  #+END_SRC
+  #
+  
+  Again, =user= will be replaced with your actual username. At this point, we
+  are logged into a server running Linux.[fn:3] So, interacting with the server
+  is a matter of using a Linux command line. A full introduction to this topic
+  is beyond the scope of this document, but many resources on this exist.[fn:4]
+  We'll cover some very basic commands as a by-product of running an example
+  program in parallel.
+
+  Lastly, in order to log in to
+  #
+  {{{machine(Della)}}}
+  #
+  your local machine must be connected to the Princeton network in a specific
+  fashion. You can't connect directly to
+  #
+  {{{machine(Della)}}}
+  #
+  via a wireless connection, a dormnet connection, or from off-campus. In these
+  cases, either set up a VPN connection (see OIT's KnowledgeBase [[http://helpdesk.princeton.edu/kb/display.plx?ID=6023][article]]) or
+  access another host on campus.
+
+** Password-less Logins (Optional, but Suggested)
+   At first, typing your password to log in doesn't seem like an
+   imposition. However, password-less logins are a great solution if you sync
+   data/code between local and remote filesystems frequently or you automate any
+   of the many stages in your workflow that involve
+   #
+   {{{machine(Della.)}}}
+   #
+   Strictly speaking, the logins aren't devoid of an authentication
+   exchange. Explaining the way in which the process works is beyond the scope
+   of this, but this information is readily available.
+
+   First, at the command line, run
+   #
+   #+LaTeX: \lstset{numbers=none}
+   #+BEGIN_SRC sh
+ssh-keygen
+   #+END_SRC
+   #
+   Be sure not to use a passphrase (as this will have to be entered every time
+   you use it and this renders the authentication process /not/
+   unattended). Running this command creates a private/public pair of keys. The
+   private key is likely located in ~$HOME/.ssh/id_rsa~ and the public key is
+   likely located in ~$HOME/.ssh/id_rsa.pub~. The former of these should be
+   protected like a password. So, for example, don't put it on the internet or
+   use it as a watermark. Anyone with the contents of this file can log in as
+   you anywhere you've set up a password-less login using this key. If you
+   already have a private/public key pair, you can continue below without
+   creating a new one.
+
+   The second step is to give
+   #
+   {{{machine(Della)}}}
+   #
+   the public portion of the key pair so that
+   the handshake can complete. Do this by running
+   #
+   #+BEGIN_SRC sh
+cat ~/.ssh/id_rsa.pub | ssh user@della.princeton.edu 'cat >> ~/.ssh/authorized_keys'
+   #+END_SRC
+   #
+   at the command line. For this operation, you will need to enter your
+   #
+   {{{machine(Della)}}}
+   #
+   password. But, hopefully, this is one of the last times. Of course, =user=
+   needs to be replaced with your username.
+   
+* Managing Files (and Projects)
+  As projects evolve, managing the files becomes increasingly important. Some
+  general advice is in order before discussing two specific aspects of storage
+  at Princeton:
+  - treat data as a dependency like a software program and not as part of the
+    project you are working on
+  - maximize portability across users and platforms
+    - rely on several environmental or R variables instead of different versions
+      of scripts
+    - auto-detect the environment whenever possible
+  - spend the time writing code to execute frequently performed tasks instead of
+    spending the time executing those tasks yourself
+    - use =rsync= to move things around
+    - use a scripting language to perform repetitive tasks
+  - consider version control
+    - this aids development
+    - in conjunction with =github.com=, you can sync /local/ and /remote/ this way
+  - develop locally as much as possible
+    - you can execute on-demand and don't have to wait for the test queue
+    - you don't have to deal with network latencies as you edit remotely
+
+** Transferring Files between /Local/ and /Remote/
+
+   There are several strategies to getting the code and data you need from your
+   /local/ system up onto
+   #
+   {{{machine(Della)}}}
+   #
+   (the /remote/ system) so that you can compute
+   with it.
+
+*** Remove /Local/ from the Workflow
+     The first is to have it live exclusively on Della. You would write and
+     debug it there. If this is how you proceed, you never need to transfer from
+     /local/ to /remote/.
+
+     This can be done, but *it is not recommended*. In fact, it's included just
+     to create the opportunity to highlight that *it is not recommended*.  Under
+     this approach, you are beholden to network connectivity for working on
+     files. Additionally, you can't separate development from interacting with
+     the job scheduler.
+
+*** Use a GUI to Transfer Files
+    Another strategy is to perform the file transfer by working with a GUI
+    client (e.g. FileZilla on Windows, default file managers on Mac OSX and
+    Linux). By connecting to
+    #
+    {{{machine(Della)}}}
+    #
+    with the
+    #
+    {{{software(sftp)}}}
+    #
+    protocol, the
+    #
+    {{{machine(Della)}}}
+    #
+    directory structure can be represented as if it were mounted on your local
+    system. Copying files up and down is the same as moving files between
+    directories on you own computer.
+
+    The downsides here are that it still requires a great deal of user-input, it
+    may not be efficient in it's communication of what has changed and what
+    hasn't. Ultimately, for complicated project directories this can be very
+    cumbersome and time-consuming.
+
+*** Script the Transfer
+    The most preferred solution would be to write a shell script that invokes
+    the
+    #
+    {{{software(rsync)}}}
+    #
+    utility with the =rsync= command. This utility is smart in that it knows how
+    to communicate all of the changes between the source and the target without
+    copying every file completely. The general structure of an
+    #
+    {{{software(rsync)}}}
+    #
+    call is =rsync [OPTIONS] SOURCE TARGET=.
+
+    The first example script (=push_up.sh=) "syncs" the directory =projectdir=
+    and its contents on the local machine to =~/projectdir= on
+    =della.princeton.edu=.
+
+    #+LaTeX: \lstset{numbers=left}
+    #+LaTeX: \lstset{title={push\_up.sh}}
+#+INCLUDE: "../../src/push_up.sh" src sh
+
+    We can run this script by entering =./push_up.sh= at the command line from
+    within the directory that the script lives in.[fn:8]
+    
+
+    Perhaps unintuitively, running
+    #+LaTeX: \lstset{captionpos=}
+    #+LaTeX: \lstset{numbers=none}
+    #+BEGIN_SRC sh
+rsync -rLvz ~/projectdir/ user@della.princeton.edu:~/
+    #+END_SRC
+    has a different effect (notice the additional =/=). The contents of the
+    local copy of =projectdir= will be copied to =~= without the inclusion of
+    the =projectdir= directory. For example, =~/projectdir/file1= would get
+    synced to =~/file1= on
+    #
+    {{{machine(Della.)}}}
+    #
+
+    Even if the rationale isn't obvious, the language in the official
+    documentation is plain:
+
+    #+BEGIN_QUOTE
+    A trailing slash on the source changes this behavior to avoid creating an
+    additional directory level at the destination. You can think of a trailing =/=
+    on a source as meaning "copy the contents of this directory" as opposed to
+    "copy the directory by name", but in both cases the attributes of the
+    containing directory are transferred to the containing directory on the
+    destination. In other words, each of the following commands copies the files
+    in the same way, including their setting of the attributes of =/dest/foo=:
+    
+    #+BEGIN_EXAMPLE
+    rsync -av /src/foo /dest
+    rsync -av /src/foo/ /dest/foo
+    #+END_EXAMPLE
+    
+    #+END_QUOTE
+
+    To perform the opposite transaction, we would list the remote source first
+    and then the local target.
+
+    #+LaTeX: \lstset{captionpos=top}
+    #+LaTeX: \lstset{title={pull\_down.sh}}
+#+INCLUDE: "../../src/pull_down.sh" src sh
+
+    Scripts like these can be run from your local machine to sync up whatever
+    you need to push. And, then, after you run your analysis, you can pull down
+    the results with a script like =pull_down.sh=. In practice, there is no
+    reason that =push_up.sh= and =pull_down.sh= have to be reciprocal
+    transactions. Rather, you might push up the entire project to the cluster
+    and then, after your job runs, pull down only the directory that contains
+    output.
+
+
+** Using Disk Space on Della (and other Princeton HPCRC Systems)
+
+   As a user of
+   #
+   {{{machine(Della)}}}
+   #
+   and other high-performance computing research center (HPCRC) systems you have
+   access to multiple disk-based storage alternatives. Each is intended for
+   different uses. Because HPCRC systems are community resources, please be
+   mindful that you are a responsible steward!
+
+   #+LaTeX: \small
+
+   | *Mount Point*       | *Networked?* | *Fast I/O?* | *Backup?* | *Typical Use*                     |
+   |---------------------+--------------+-------------+-----------+-----------------------------------|
+   | =/home/=            | Yes          | No          | Yes       | source, executables               |
+   | =/scratch/network/= | Yes          | No          | No        | post-job, unsafe mid-term storage |
+   | =/scratch/pvfs2/=   | Yes          | Yes         | No        | within-job fast I/O, old files rm-ed |
+   | =/tigress-hsm/=     | Yes          | Yes         | Yes       | post-analysis, persistent storage |
+   | =/scratch/=         | No           | Local       | No        | fastest, within-node, within-job  |
+
+   #+LaTeX: \normalsize
+
+   This information is taken from the Research Computing website and you can
+   read a fuller version
+   [[http://www.princeton.edu/researchcomputing/computational-hardware/machine-2/user-guidelines/][here]].[fn:7]
+   Any directory with =scratch= in the name is not backed-up.
+
+*** A General Guideline
+First, for the project in general,
+ 1) store code in =~/=.
+ 2) store input data in =/tigress-hsm/=.
+ 3) mirror the input data from =/tigress-hsm/= onto =/scratch/network/= (or =/scratch/pvfs2/=).
+
+#+LaTeX:\noindent
+Next, for any given job
+ 1) update the mirror on =/scratch/network/= (or =/scratch/pvfs2/) with =rsync=.
+ 2) =rsync= the input data from =/scratch/network/= to =/scratch/pvfs2/= if you
+    need fast I/O for the input data (note that this includes an additional
+    'read' of the data so the fast I/O comes with an overhead cost).
+ 3) run your program
+    - read as necessary from =/scratch/network/=, =/scratch/pvfs2/=
+    - save any within-process data to =/scratch/=
+    - save any within-job, across-process data to =/scratch/pvfs2/= or
+      =/scratch/network/= depending on need
+ 4) clean up any within-process data on =/scratch/=
+ 5) =rsync= the output data from =/scratch/pvfs2/= to =/scratch/network=
+ 6) clean up within-job data that isn't needed 
+    
+* The Job Scheduler
+The only way to manage 
+** Submitting Jobs
+
+** Monitoring Jobs
+** Monitoring Long-Run Usage
+
+
+* More Resources
+1) Research computing
+2) FAQs
+3) me
+4) them
+
+
+
+
+
+
+
+
+
+
+
+*** Example
+    As an example, suppose you have an R script that executes an embarrassingly
+    parallel job via
+    #
+    {{{software(MPI.)}}}
+    #
+    Further, suppose you are using MCMC methods for Bayesian Inference and want
+    to consider four chains. You are using these four chains as an opportunity to:
+    - initialize the chain with different starting values, and
+    - employ the Gelman and Rubin diagnostic for convergence.
+
+    We can construct this as a 4-process computational task. Below is an outline
+    of how we might have our relatively small computational problem interact
+    with storage.
+
+    1) Submit your PBS script which lives somewhere on =/home/=.
+    2) The PBS script then checks that the =/scratch/network/= (or
+       =/scratch/pvfs2=) mirror of the =/tigress-hsm/= copy of the data is in
+       sync.
+    3) The PBS script invokes an executable or a script that also lives on
+       =/home/*= containing the main program.
+    4) The data and starting values are distributed to our 4 processes.
+    5) Each process $p$ keeps the current parameter values in memory and writes
+       the output to =/scratch/jolmsted/sampler/output-p=, say.
+    6) After running 
+    
+    This can be parallelized over four different processes whether they are
+    run on the same compute node or not.  MCMC output can be quite large for
+    complex models where convergence requires many iterations of the
+    algorithm. As such, assume we can't keep the full history of the parameter
+    draws in memory for each processor and, instead, we have each process
+    (recall, there are 4) write the parameter draws out to a file in
+    =/scratch/=.[fn:5][fn:6] After running each of the 4 chains for an
+    arbitrarily large number of draws, we collect thinned versions of the
+    histories of the chains and aggregate them in some fashion, where we then
+    save the output in =/scratch/network/= where it stays while we work on
+    summarizing the simulated posterior distribution and the interpretation of
+    the results. Given that we have the aggregated draws, we don't care about
+    the data we've written to =/scratch/= and so we clean that up after it has
+    been moved to =/scratch/network/=. Now, once we've identified that
+
+
+
+
+
+
+
+
+* Footnotes
+
+[fn:1] This will be changing by the Summer of 2013.
+
+[fn:2] Better yet, consider installing
+#
+{{{url(http://www.cygwin.com/)}}}
+#
+.
+
+[fn:3] Specifically, we are running Springdale Linux which is RHEL-based:
+#
+{{{url(http://springdale.math.ias.edu/)}}}
+#
+.
+
+[fn:4] There is a wealth of information about using Linux provided by
+Princeton's OIT:
+#
+{{{url(http://helpdesk.princeton.edu/kb/display.plx?ID=9660)}}}
+#
+.
+
+[fn:5] Of course, we are careful to name these files in a manner that doesn't
+cause conflicts should they all be occurring on the same node.
+
+[fn:6] If we run this and we find that write-speed is a bottleneck, we might
+consider saving this output in =/scratch/pvfs2/=.
+
+[fn:7] There is also a FAQ on this topic: 
+#
+{{{url(http://www.princeton.edu/researchcomputing/faq/where-do-i-store-/)}}}
+#
+.
+
+[fn:8] If the script is not set as an executable file, change the permissions
+with =chmod +x file=, where =file= is the path to the relevant file.
