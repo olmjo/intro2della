@@ -1,0 +1,5 @@
+*~
+*.DS_Store
+/doc/out/style.css
+/doc/out/tutorial.html
+/doc/out/tutorial.pdf
