@@ -1,0 +1,2 @@
+##  
+rsync -rLvz ~/projectdir user@della.princeton.edu:~/
