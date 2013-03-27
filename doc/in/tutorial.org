@@ -2,10 +2,9 @@
 #+AUTHOR: Jonathan Olmsted
 #+EMAIL: jolmsted@princeton.edu
 #+DESCRIPTION:
-#+STYLE: <style>html {font-family: sans-serif;}</style>
-#+STYLE: <style>code {font-family: monospace; border: 1pt solid #AEBDCC; background-color: #F3F5F7; padding: 1pt; font-size: 90%;}</style>
-#+STYLE: <style>pre {font-family: monospace;}</style>
-#+OPTIONS: H:4 num:t toc:nil @:t ::t |:t ^:t f:t TeX:t
+
+#+STYLE: <link rel="stylesheet" type="text/css" href="./style.css" />
+#+OPTIONS: H:4 num:t toc:t @:t ::t |:t ^:t f:t TeX:t
 
 #+LaTeX_CLASS: qaps-tn
 #+LaTeX_HEADER: \subtitle{Basic HPC at Princeton}
@@ -19,7 +18,7 @@
 #+MACRO: machineHTML #+HTML: <machine>$1</machine>
 
 #+MACRO: urlTeX #+LaTeX: \url{$1}
-#+MACRO: urlHTML #+HTML: <url>$1</url>
+#+MACRO: urlHTML #+HTML: <a href=$1>$1</a>
 
 #+MACRO: software {{{softwareTeX($1)}}} \n {{{softwareHTML($1)}}}
 #+MACRO: machine {{{machineTeX($1)}}} \n {{{machineHTML($1)}}}
@@ -27,12 +26,13 @@
 
 
 * Introduction
-*[[http://www.princeton.edu/researchcomputing/computational-hardware/machine-2/][
-{{{machine(Della)}}}
-]]*
-is one of several clusters managed by the
+This introduction focuses on
+#
+{{{machine(Della,)}}}
+#
+one of several clusters managed by the
 [[http://www.princeton.edu/researchcomputing/index.xml][Research Computing]]
-collaboration at Princeton University. Currently,
+collaboration at Princeton University.[fn:9] Currently,
 #
 {{{machine(Della)}}}
 #
@@ -60,8 +60,7 @@ semantics of what you've done.
    #
    {{{url(http://www.princeton.edu/researchcomputing/access/)}}}
    #
-   . Also,
-   it is assumed that you have the means to use the
+   . Also, it is assumed that you have the means to use the
    #
    {{{software(ssh)}}}
    #
@@ -90,7 +89,7 @@ semantics of what you've done.
 
 #+LaTeX: \subsection{License}
 #+LaTeX: \license
-
+   
 
 * Connecting to Della
   Once you have an account on
@@ -201,6 +200,7 @@ cat ~/.ssh/id_rsa.pub | ssh user@della.princeton.edu 'cat >> ~/.ssh/authorized_k
    password. But, hopefully, this is one of the last times. Of course, =user=
    needs to be replaced with your username.
    
+
 * Managing Files (and Projects)
   As projects evolve, managing the files becomes increasingly important. Some
   general advice is in order before discussing two specific aspects of storage
@@ -370,6 +370,8 @@ rsync -rLvz ~/projectdir/ user@della.princeton.edu:~/
    [[http://www.princeton.edu/researchcomputing/computational-hardware/machine-2/user-guidelines/][here]].[fn:7]
    Any directory with =scratch= in the name is not backed-up.
 
+
+
 *** A General Guideline
 First, for the project in general,
  1) store code in =~/=.
@@ -390,14 +392,34 @@ Next, for any given job
  4) clean up any within-process data on =/scratch/=
  5) =rsync= the output data from =/scratch/pvfs2/= to =/scratch/network=
  6) clean up within-job data that isn't needed 
+
+*** Quotas
     
-* The Job Scheduler
-The only way to manage 
+
+* The Resource Manager
+** Resources Available
+desc. of della
+
+
 ** Submitting Jobs
 
+using qsub
+
+understanding directives
+
 ** Monitoring Jobs
+
+priority
+
+checking jobs
+
+checking queue
+
+per job efficiency
+
 ** Monitoring Long-Run Usage
 
+* practical examples
 
 * More Resources
 1) Research computing
@@ -457,7 +479,9 @@ The only way to manage
     been moved to =/scratch/network/=. Now, once we've identified that
 
 
-
+* TODO
+** split della scripts repo
+** fix file location * inconsistency
 
 
 
@@ -500,3 +524,10 @@ consider saving this output in =/scratch/pvfs2/=.
 
 [fn:8] If the script is not set as an executable file, change the permissions
 with =chmod +x file=, where =file= is the path to the relevant file.
+
+[fn:9] See
+#
+{{{url(http://www.princeton.edu/researchcomputing/computational-hardware/machine-2/)}}}
+#
+.
+
