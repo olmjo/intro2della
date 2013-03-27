@@ -1,0 +1,9 @@
+html {
+    font-family: sans-serif;
+}
+code {
+    font-family: monospace; border: 1pt solid #AEBDCC; background-color: #F3F5F7; padding: 1pt; font-size: 90%;
+}
+pre {
+    font-family: monospace;
+}
