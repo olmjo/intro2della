@@ -1,0 +1,11 @@
+# Intro to Della: Basic HPC at Princeton University
+- Author: Jonathan Olmsted
+
+
+## Abstract
+The purpose of this documentation is to introduce users to interacting with the
+HPC resources at Princeton University. Topics covered include local-remote file
+management, submitting jobs, and viewing job progress. The coverage applies to
+serial and parallel jobs. Although parallelization is not covered explicitly,
+nearly all of the material covered can be understood without any experience in
+parallelizing codes.
