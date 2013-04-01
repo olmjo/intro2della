@@ -355,13 +355,13 @@ rsync -rLvz ~/projectdir/ user@della.princeton.edu:~/
 
    #+LaTeX: \small
 
-   | *Mount Point*       | *Networked?* | *Fast I/O?* | *Backup?* | *Typical Use*                     |
-   |---------------------+--------------+-------------+-----------+-----------------------------------|
-   | =/home/=            | Yes          | No          | Yes       | source, executables               |
-   | =/scratch/network/= | Yes          | No          | No        | post-job, unsafe mid-term storage |
-   | =/scratch/pvfs2/=   | Yes          | Yes         | No        | within-job fast I/O, old files rm-ed |
-   | =/tigress-hsm/=     | Yes          | Yes         | Yes       | post-analysis, persistent storage |
-   | =/scratch/=         | No           | Local       | No        | fastest, within-node, within-job  |
+   | *Mount Point*       | *Networked?* | *Fast I/O?* | *Backup?* | *Typical Use*                         |
+   |---------------------+--------------+-------------+-----------+---------------------------------------|
+   | =/home/=            | Yes          | No          | Yes       | source, executables                   |
+   | =/scratch/network/= | Yes          | No          | No        | post-job, unsafe mid-term storage     |
+   | =/scratch/gpfs/=    | Yes          | Yes         | No        | within-job fast I/O, old files rm-ed  |
+   | =/tigress-hsm/=     | Yes          | Yes         | Yes       | pre/post-analysis, persistent storage |
+   | =/scratch/=         | No           | Local       | No        | fastest, within-node, within-job      |
 
    #+LaTeX: \normalsize
 
@@ -376,36 +376,99 @@ rsync -rLvz ~/projectdir/ user@della.princeton.edu:~/
 First, for the project in general,
  1) store code in =~/=.
  2) store input data in =/tigress-hsm/=.
- 3) mirror the input data from =/tigress-hsm/= onto =/scratch/network/= (or =/scratch/pvfs2/=).
+ 3) mirror the input data from =/tigress-hsm/= onto =/scratch/network/= (or =/scratch/gpfs.
 
 #+LaTeX:\noindent
 Next, for any given job
- 1) update the mirror on =/scratch/network/= (or =/scratch/pvfs2/) with =rsync=.
- 2) =rsync= the input data from =/scratch/network/= to =/scratch/pvfs2/= if you
+ 1) update the mirror on =/scratch/network/= (or =/scratch/gpfs/) with =rsync=.
+ 2) =rsync= the input data from =/scratch/network/= to =/scratch/gpfs/= if you
     need fast I/O for the input data (note that this includes an additional
     'read' of the data so the fast I/O comes with an overhead cost).
  3) run your program
-    - read as necessary from =/scratch/network/=, =/scratch/pvfs2/=
+    - read as necessary from =/scratch/network/=, =/scratch/gpfs/=
     - save any within-process data to =/scratch/=
-    - save any within-job, across-process data to =/scratch/pvfs2/= or
+    - save any within-job, across-process data to =/scratch/gpfs/= or
       =/scratch/network/= depending on need
  4) clean up any within-process data on =/scratch/=
- 5) =rsync= the output data from =/scratch/pvfs2/= to =/scratch/network=
+ 5) =rsync= the output data from =/scratch/gpfs/= to =/scratch/network=
  6) clean up within-job data that isn't needed 
 
 *** Quotas
-    
+
+Various quotas are in place that limit the amount of disk storage you
+use and how many files you can have. You will receive notifications of
+your usage once you reach the "soft" quota on each of these. Then,
+when you reach the "hard" limit, you won't be able to create files.
+
+To check the quota in =/home/user/=, use =quota -s=. Example output is as
+follows:
+
+#+begin_src fundamental
+user@della3: ~ > quota -s
+Disk quotas for user user (uid XXXXXX): 
+     Filesystem  blocks   quota   limit   grace   files   quota   limit   grace
+della-store:/home
+                   8480    953M   1024M             817       0       0        
+#+end_src
+
+The =-s= flag returns information on storage size in automatically
+chosen units (we don't want to describe a tiny text file in GBs or a
+large database in terms of KBs). From this output, we are using 8,480
+KBs (the default unit) of storage in =~/user/=. Warnings will begin
+once we use more than 953 MBs. File creation will be impossible at
+1,024 MBs (=1 GB). Clearly, these aren't large amounts of data and any
+one projects input data (not to mention code, documentation, and
+output) can easily be larger than this 1 GB limit. However, it is
+adequate storage for the use of =/home/= as intended (and described
+above).
+
+We can also see that we are using 817 files. However, in this case,
+there are no limits on the number of files we can have in this
+directory.
+
+We can check our usage on =/tigress-hsm/= and =/scratch/gpfs/=,
+too. Use =/usr/lpp/mmfs/bin/mmlsquota /dev/della_hsm_fs= and
+=/usr/lpp/mmfs/bin/mmlsquota /dev/della_gpfs=. The output is
+interpreted the same way. Use the =--block-size auto= flag for easier
+to read output.
+
+More information can be found at
+#
+{{{url(http://www.princeton.edu/researchcomputing/faq/how-to-check-my-quota/)}}}
+#
+.
 
 * The Resource Manager
-** Resources Available
-desc. of della
+The
+#
+{{{machine(Della)}}}
+#
+cluster is composed of an impressive set of resources. It has over
+1,500 cores, totals 9 TB of RAM, and has a LINPACK performance of 16
+Teraflops. However, the only way to pull the system out of a Hobbesian
+state of nature is to use a resource manager. As a user, you submit
+your computational job to scheduler which holds the job in a queue
+until it is ready to run. Where and when your job runs is determined
+by the scheduler's backend.
 
+Although the scheduler is necessary to get the most out of the
+cluster's resources for all of its users, you have to understand how
+the scheduler works so that /you/ can get the most out of 
+#
+{{{machine(Della.)}}}
+#
 
 ** Submitting Jobs
 
-using qsub
+A "job" is represented as a shell script which is then submitted to
+the scheduler using the =qsub= command (e.g. =qsub
+script.sh=). However, some additional information must be included in
+the script to help Torque schedule your job. These are called PBS
+directives. Because =qsub= has an unwieldy number of options, learning
+by example is a good way to start. However, you should read =man qsub=
+as you use the scheduler more.
 
-understanding directives
+INSERT DISCUSSION OF SUBMISSION
 
 ** Monitoring Jobs
 
@@ -418,6 +481,12 @@ checking queue
 per job efficiency
 
 ** Monitoring Long-Run Usage
+
+
+
+
+
+
 
 * practical examples
 
@@ -454,7 +523,7 @@ per job efficiency
 
     1) Submit your PBS script which lives somewhere on =/home/=.
     2) The PBS script then checks that the =/scratch/network/= (or
-       =/scratch/pvfs2=) mirror of the =/tigress-hsm/= copy of the data is in
+       =/scratch/gpfs=) mirror of the =/tigress-hsm/= copy of the data is in
        sync.
     3) The PBS script invokes an executable or a script that also lives on
        =/home/*= containing the main program.
@@ -480,7 +549,6 @@ per job efficiency
 
 
 * TODO
-** split della scripts repo
 ** fix file location * inconsistency
 
 
@@ -514,7 +582,7 @@ Princeton's OIT:
 cause conflicts should they all be occurring on the same node.
 
 [fn:6] If we run this and we find that write-speed is a bottleneck, we might
-consider saving this output in =/scratch/pvfs2/=.
+consider saving this output in =/scratch/gpfs/=.
 
 [fn:7] There is also a FAQ on this topic: 
 #
